@@ -13,18 +13,24 @@ void graph_dump_node(FILE* file, node_t* node, int depth, node_t* current)
         colour = "red";
     if (node == current) colour = "yellow";
 
-    if (node -> op != NOT_OP)
-        fprintf(file, "\tn_%p [style = filled, fillcolor = %s, label = \"{ %p | TYPE = %d | DATA(op) = %d | PARENT = %p | { <l> LEFT = %p | <r> RIGHT = %p}}\"];\n",
+    switch(node -> type)
+    {
+        case OP:
+            fprintf(file, "\tn_%p [style = filled, fillcolor = %s, label = \"{ %p | TYPE = %d(OP) | DATA(op) = %d | PARENT = %p | { <l> LEFT = %p | <r> RIGHT = %p}}\"];\n",
                 (void*)node, colour, (void*)node, node -> type, node -> op, (void*)node -> parent, 
                 (void*)node -> left, (void*)node -> right);
-    else if (node -> var != -1)
-        fprintf(file, "\tn_%p [style = filled, fillcolor = %s, label = \"{ %p | TYPE = %d | DATA(var) = %d | PARENT = %p | { <l> LEFT = %p | <r> RIGHT = %p}}\"];\n",
+            break;
+        case VAR:
+            fprintf(file, "\tn_%p [style = filled, fillcolor = %s, label = \"{ %p | TYPE = %d(VAR) | DATA(var) = %d | PARENT = %p | { <l> LEFT = %p | <r> RIGHT = %p}}\"];\n",
                 (void*)node, colour, (void*)node, node -> type, node -> var, (void*)node -> parent, 
                 (void*)node -> left, (void*)node -> right);
-    else
-        fprintf(file, "\tn_%p [style = filled, fillcolor = %s, label = \"{ %p | TYPE = %d | DATA(num) = %lg | PARENT = %p | { <l> LEFT = %p | <r> RIGHT = %p}}\"];\n",
+            break;
+        case NUM:
+            fprintf(file, "\tn_%p [style = filled, fillcolor = %s, label = \"{ %p | TYPE = %d(NUM) | DATA(num) = %lg | PARENT = %p | { <l> LEFT = %p | <r> RIGHT = %p}}\"];\n",
                 (void*)node, colour, (void*)node, node -> type, node -> num, (void*)node -> parent, 
                 (void*)node -> left, (void*)node -> right);
+            break;
+    }
 
     if (node -> left)
     {
@@ -66,6 +72,8 @@ void dump_tree(FILE* file, tree_t* tree, node_t* current)
 //----------------------------------------------------------------------------
 void dump_run(tree_t* tree, node_t** current)
 {
+    assert(tree);
+    
     FILE* dump_file = fopen(GRAPH_FILE, "w");
     if (!dump_file)
     {

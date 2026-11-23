@@ -14,6 +14,8 @@ void delete_subtree(node_t* node)
 //----------------------------------------------------------------------------
 size_t len_of_file(const char* name)
 {
+    assert(name);
+    
     struct stat file_info;
     stat(name, &file_info);
 
@@ -93,18 +95,16 @@ node_t* pre_new_node(char* buffer_file, node_t* parent, size_t* size, int* i)
     {
         if (i < len_operations_arr && strcmp(buffer_data, OPERATIONS[i]) == 0)
         {
+            node -> type = OP;
             node -> op  = (operations)i;
-            node -> var = -1;
-            node -> num = NAN;
 
             op = true;
             break;
         }
         else if (i < VAR_CAPACITY && strcmp(buffer_data, VARIABLES[i]) == 0)
         {
-            node -> op  = NOT_OP;
+            node -> type = VAR;
             node -> var = i;
-            node -> num = NAN;
 
             var = true;
             break;
@@ -112,8 +112,7 @@ node_t* pre_new_node(char* buffer_file, node_t* parent, size_t* size, int* i)
     }
     if (!op && !var)
     {
-        node -> op  = NOT_OP;
-        node -> var = -1;
+        node -> type = NUM;
         node -> num = strtod(buffer_data, NULL);
     }
 
