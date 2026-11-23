@@ -1,177 +1,115 @@
 #include "diff.hpp"
 
 //----------------------------------------------------------------------------
-void delete_subtree(node_t* node)
+node_t* node_diff(const node_t* node)
 {
-    if (!node) return;
+    assert(node);
 
-    delete_subtree(node -> left);
-    delete_subtree(node -> right);
-
-    free(node);
+    switch(node -> type)
+    {
+        case NUM:
+            return _NUM(0);
+        case VAR:
+            return _NUM(1);
+        case OP:
+            switch(node -> op)
+            {
+                case ADD:
+                    return _ADD(_DL, _DR);
+                case SUB:
+                    return _SUB(_DL, _DR);
+                case MUL:
+                    return _ADD(_MUL(_DL, _CR),
+                                _MUL(_CL, _DR));
+                case DIV:
+                    return _DIV(_SUB(_MUL(_DL, _CR), _MUL(_CL, _DR)),
+                                _POW(_CR, _NUM(2)));
+                case POW:
+                    if (node -> left -> type == VAR && node -> left -> var == 0)
+                    {
+                        if (node -> right -> type == NUM)
+                        {
+                            return _MUL(_MUL(_NUM(node -> right -> num),
+                                        _POW(_CL, _NUM(node -> right -> num - 1))),
+                                        _DL);
+                        }
+                    }
+                    else if (node -> left -> type == NUM)
+                    {
+                        if (node -> right -> type == VAR && node -> left -> var == 0)
+                            return _MUL(_MUL(_CN, _LN(_CL)), _DR);
+                        else
+                            return _NUM(0);
+                    }
+                case LN:
+                    return _MUL(_DIV(_NUM(1), _CN), _DL);
+            }
+    }
 }
 
 //----------------------------------------------------------------------------
-size_t len_of_file(const char* name)
+node_t* new_node(type_node type, tree_elem_t data, node_t* left, node_t* right, node_t* parent)
 {
-    assert(name);
-    
-    struct stat file_info;
-    stat(name, &file_info);
+    node_t* node   = (node_t*)calloc(1, sizeof(node_t));
+    assert(node);
 
-    if (file_info.st_size <= 0) return 0;
-    else return (size_t)file_info.st_size;
-}
-
-//----------------------------------------------------------------------------
-void preorder_read(const char* const pre_file, tree_t* tree)
-{
-    assert(pre_file);
-    assert(tree);
-
-    FILE* file = fopen(pre_file, "r");
-    if (!file)
-    {
-        printf(MY_RED "Error in preorder_read\n" CRESET);
-        return;
-    }
-
-    size_t file_size = len_of_file(pre_file);
-    char* buffer_file = (char*)calloc(file_size + 2, 1);
-    fread(buffer_file, 1, file_size, file);
-    fclose(file);
-
-    int i = 0;
-    while (isspace((unsigned char)buffer_file[i])) i++;
-
-    if (buffer_file[i++] != '(')
-    {
-        printf(MY_RED "Error in preorder_read\n" CRESET);
-        free(buffer_file);
-        return;
-    }
-    
-    size_t size = 0;
-    node_t* root = pre_new_node(buffer_file, NULL, &size, &i);
-    if (root)
-        tree -> root = root;
-    else
-    {
-        printf(MY_RED "Error in preorder_read\n" CRESET);
-        free(buffer_file);
-        return;
-    }
-    
-    tree -> size = size;
-
-    free(buffer_file);
-    printf(MY_GRN "Data downloaded successfully\n" CRESET);
-}
-
-//----------------------------------------------------------------------------
-node_t* pre_new_node(char* buffer_file, node_t* parent, size_t* size, int* i)
-{
-    node_t* node = (node_t*) calloc(1, sizeof(node_t));
-    if (node == NULL)
-    {
-        printf(MY_RED "Error in pre_new_node\n" CRESET);
-        return NULL;
-    }
-
-    char* buffer_data = (char*)calloc(BUFFER_SIZE, 1);
-
-    int buf_i = 0;
-    while(buffer_file[*i] != '\0' && buffer_file[*i] != '(' && buffer_file[*i] != ')')
-    {
-        buffer_data[buf_i++] = buffer_file[*i];
-        (*i)++;
-    }
-    buffer_data[buf_i] = '\0';
-
-    //проверка типа узла
-    bool op  = false;
-    bool var = false;
-    for (int i = 0; i < len_operations_arr || i < VAR_CAPACITY; i++)
-    {
-        if (i < len_operations_arr && strcmp(buffer_data, OPERATIONS[i]) == 0)
-        {
-            node -> type = OP;
-            node -> op  = (operations)i;
-
-            op = true;
-            break;
-        }
-        else if (i < VAR_CAPACITY && strcmp(buffer_data, VARIABLES[i]) == 0)
-        {
-            node -> type = VAR;
-            node -> var = i;
-
-            var = true;
-            break;
-        }
-    }
-    if (!op && !var)
-    {
-        node -> type = NUM;
-        node -> num = strtod(buffer_data, NULL);
-    }
-
+    node -> type   = type;
+    node -> left   = left;
+    node -> right  = right;
     node -> parent = parent;
-    (*size)++;
 
-    while(buffer_file[*i] != '\0' && buffer_file[*i] != '(' && buffer_file[*i] != ')') (*i)++;
-    if (buffer_file[*i] == ')')
+    switch(type)
     {
-        node -> left = NULL;
-        node -> right = NULL;
-        (*i)++;
-        return node;
-    }
-    else if (buffer_file[*i] == '(')
-    {
-        (*i)++;
-        node -> left = pre_new_node(buffer_file, node, size, i);
-        if (!node -> left)
-        {
-            delete_subtree(node);
-            return NULL;
-        }
-    }
-    else
-    {
-        printf(MY_RED "Error in pre_new_node\n" CRESET);
-        return NULL;
+        case NUM:
+            node -> num = (tree_elem_t)data;
+            break;
+        case VAR:
+            node -> var = data;
+            break;
+        case OP:
+            node -> op = (operations)data;
+            break;
+        default:
+            printf(MY_RED "Error in new_node: unknown type\n" CRESET);
+            break;
     }
 
-    while(buffer_file[*i] != '\0' && buffer_file[*i] != '(' && buffer_file[*i] != ')') (*i)++;
-    if (buffer_file[*i] == ')')
-    {
-        printf(MY_RED "Error in pre_new_node: node has only one child\n" CRESET);
-        delete_subtree(node);
-        return NULL;
-    }
-    else if (buffer_file[*i] == '(')
-    {
-        (*i)++;
-        node -> right = pre_new_node(buffer_file, node, size, i);
-        if (!node -> right)
-        {
-            delete_subtree(node);
-            return NULL;
-        }
-    }
-    else
-    {
-        printf(MY_RED "Error in pre_new_node\n" CRESET);
-        return NULL;
-    }
+    if (left)  left  -> parent = node;
+    if (right) right -> parent = node;
 
-    if (buffer_file[*i] != ')')
-    {
-        printf(MY_RED "Error in pre_new_node\n" CRESET);
-        return NULL;
-    }
-    
-    (*i)++;
     return node;
+}
+
+//----------------------------------------------------------------------------
+node_t* copy_node(const node_t* node)
+{
+    if(!node) return NULL;
+
+    node_t* copy = (node_t*)calloc(1, sizeof(node_t));
+    assert(copy);
+
+    copy -> type = node -> type;
+    switch(node -> type)
+    {
+        case(NUM):
+            copy -> num = node -> num;
+            break;
+        case(VAR):
+            copy -> var = node -> var;
+            break;
+        case(OP):
+            copy -> op  = node -> op;
+            break;
+        default:
+            printf(MY_RED "Error in copy_node: wrong type\n" CRESET);
+            break;
+    }
+
+    copy -> left  = copy_node(node -> left);
+    copy -> right = copy_node(node -> right);
+
+    if (copy -> left)  copy -> left  -> parent = copy;
+    if (copy -> right) copy -> right -> parent = copy;
+
+    return(copy);
 }

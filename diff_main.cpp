@@ -8,5 +8,8 @@ int main()
 
     preorder_read(DATA_FILE, &tree);
 
+    tree.root = node_diff(tree.root);
+
     dump_run(&tree, &tree.root);
 }
+
