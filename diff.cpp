@@ -44,6 +44,14 @@ node_t* node_diff(const node_t* node)
                     break;
                 case LN:
                     return _MUL(_DIV(_NUM(1), _CN), _DL);
+                case SIN:
+                    return _MUL(_COS(_CL), _DL);
+                case COS:
+                    return _MUL(_MUL(_SIN(_CL), _DL), _NUM(-1));
+                case TG:
+                    return _MUL(_DIV(_NUM(1), _POW(_COS(_CL), _NUM(2))), _DL);
+                case CTG:
+                    return _MUL(_DIV(_NUM(-1), _POW(_SIN(_CL), _NUM(2))), _DL);
                 case NOT_OP:
                 default:
                     printf(MY_RED "Error in node_diff: wrong node op\n" CRESET);
@@ -170,46 +178,11 @@ bool conv_const(node_t* node)
     node_t* left  = node -> left;
     node_t* right = node -> right;
 
-    if (node -> op == LN)
-    {
-        if (left -> type == NUM && left -> num > 0)
-        {
-            make_num(node, log(left -> num));
-            return true;
-        }
-
+    if (count_func(node, &changed))
         return changed;
-    }
 
-    if (left -> type == NUM && right -> type == NUM)
-    {
-        switch (node -> op)
-        {
-            case ADD:
-                make_num(node, left -> num + right -> num);
-                return true;
-            case SUB:
-                make_num(node, left -> num - right -> num);
-                return true;
-            case MUL:
-                make_num(node, left -> num * right -> num);
-                return true;
-            case DIV:
-                if (!is_val(right, 0))
-                {
-                    make_num(node, left -> num / right -> num);
-                    return true;
-                }
-                break;
-            case POW:
-                make_num(node, pow(left -> num, right -> num));
-                return true;
-            case LN:
-            case NOT_OP:
-            default:
-                break;
-        }
-    }
+    if (count_op(node, &changed))
+        return changed;
 
     switch (node -> op)
     {
@@ -273,6 +246,25 @@ bool conv_const(node_t* node)
                 return true;
             }
             break;
+        case SIN:
+            if (is_val(left, 0))
+            {
+                make_num(node, 0);
+                return true;
+            }
+        case COS:
+            if (is_val(left, 0))
+            {
+                make_num(node, 1);
+                return true;
+            }
+        case TG:
+            if (is_val(left, 0))
+            {
+                make_num(node, 0);
+                return true;
+            }
+        case CTG:
         case LN:
         case NOT_OP:
         default:
@@ -296,3 +288,119 @@ void conv_tree(tree_t* tree)
 }
 
 //----------------------------------------------------------------------------
+bool count_func(node_t* node, bool* changed)
+{
+    if (!node)
+    {
+        *changed = false;
+        return true;
+    }
+
+    node_t* left  = node -> left;
+
+    if (node -> op == LN)
+    {
+        if (left -> type == NUM && left -> num > 0)
+        {
+            make_num(node, log(left -> num));
+            *changed = true;
+            return true;
+        }
+
+        return true;
+    }
+    if (node -> op == SIN)
+    {
+        if (left -> type == NUM)
+        {
+            make_num(node, sin(left -> num));
+            *changed = true;
+            return true;
+        }
+
+        return true;
+    }
+    if (node -> op == COS)
+    {
+        if (left -> type == NUM)
+        {
+            make_num(node, cos(left -> num));
+            *changed = true;
+            return true;
+        }
+
+        return true;
+    }
+    if (node -> op == TG)
+    {
+        if (left -> type == NUM)
+        {
+            make_num(node, tan(left -> num));
+            *changed = true;
+            return true;
+        }
+
+        return true;
+    }
+    if (node -> op == CTG)
+    {
+        if (left -> type == NUM)
+        {
+            make_num(node, cos(left -> num) / sin(left -> num));
+            *changed = true;
+            return true;
+        }
+
+        return true;
+    }
+
+    return false;
+}
+
+//----------------------------------------------------------------------------
+bool count_op(node_t* node, bool* changed)
+{
+    node_t* left  = node -> left;
+    node_t* right = node -> right;
+
+    if (left -> type == NUM && right -> type == NUM)
+    {
+        switch (node -> op)
+        {
+            case ADD:
+                make_num(node, left -> num + right -> num);
+                *changed = true;
+                return true;
+            case SUB:
+                make_num(node, left -> num - right -> num);
+                *changed = true;
+                return true;
+            case MUL:
+                make_num(node, left -> num * right -> num);
+                *changed = true;
+                return true;
+            case DIV:
+                if (!is_val(right, 0))
+                {
+                    make_num(node, left -> num / right -> num);
+                    *changed = true;
+                    return true;
+                }
+                break;
+            case POW:
+                make_num(node, pow(left -> num, right -> num));
+                *changed = true;
+                return true;
+            case LN:
+            case SIN:
+            case COS:
+            case TG:
+            case CTG:
+            case NOT_OP:
+            default:
+                break;
+        }
+    }
+
+    return false;
+}

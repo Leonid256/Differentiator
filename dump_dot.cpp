@@ -87,7 +87,7 @@ void dump_run(tree_t* tree, node_t** current)
     dump_tree(dump_file, tree, *current);
     fclose(dump_file);
 
-    if (system("dot -Tsvg tree.dot -o tree.svg") != 0)
+    if (system("dot -Tsvg dump/tree.dot -o dump/tree.svg") != 0)
     {
         printf(MY_RED "Error: dot failed\n" CRESET);
         return;

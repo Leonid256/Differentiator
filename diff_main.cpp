@@ -8,6 +8,8 @@ int main()
 
     preorder_read(DATA_FILE, &tree);
 
+    // DUMP_TEX(tree.root, TEX_FILE);
+
     tree.root = node_diff(tree.root);
     conv_tree(&tree);
 

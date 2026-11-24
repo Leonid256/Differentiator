@@ -22,8 +22,8 @@ const char* const DATA_FILE  = "data.txt";
 const char* const GRAPH_FILE = "dump/tree.dot";
 const char* const TEX_FILE   = "dump/tex.tex";
 
-const char* const OPERATIONS[] = {"+", "-", "*", "/", "^", "ln"};
-const int len_operations_arr = 4;
+const char* const OPERATIONS[] = {"+", "-", "*", "/", "^", "ln", "sin", "cos", "tg", "ctg"};
+const int len_operations_arr = sizeof(OPERATIONS) / sizeof(OPERATIONS[0]);
 
 const int VAR_CAPACITY = 3;
 const char* const VARIABLES[VAR_CAPACITY] = {"x", "y", "z"};
@@ -37,6 +37,10 @@ enum operations
     DIV,
     POW,
     LN,
+    SIN,
+    COS,
+    TG,
+    CTG,
     NOT_OP,
 };
 
@@ -92,6 +96,10 @@ node_t* new_node(type_node type, tree_elem_t data, node_t* left, node_t* right, 
 #define _DIV(node_l, node_r) new_node(OP, DIV, node_l, node_r, NULL)
 #define _POW(node_l, node_r) new_node(OP, POW, node_l, node_r, NULL)
 #define  _LN(node_l)         new_node(OP, LN,  node_l, NULL,   NULL)
+#define _SIN(node_l)         new_node(OP, SIN, node_l, NULL,   NULL)
+#define _COS(node_l)         new_node(OP, COS, node_l, NULL,   NULL)
+#define  _TG(node_l)         new_node(OP, TG,  node_l, NULL,   NULL)
+#define _CTG(node_l)         new_node(OP, CTG, node_l, NULL,   NULL)
 
 node_t* copy_node(const node_t* node);
 #define _CL copy_node(node -> left)
@@ -108,6 +116,8 @@ void replace_child(node_t* node, node_t* child, node_t* other);
 bool conv_const(node_t* node);
 bool is_val(node_t* node, tree_elem_t value);
 void conv_tree(tree_t* tree);
+bool count_func(node_t* node, bool* changed);
+bool count_op(node_t* node, bool* changed);
 
 //____________________________________________________________________________
 #define DUMP_TEX(node, tex_file) dump_tex(node, tex_file, __LINE__)

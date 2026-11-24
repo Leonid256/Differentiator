@@ -72,6 +72,26 @@ void latex_node(FILE* file, const node_t* node)
                     latex_node(file, node -> left);
                     fprintf(file, "\\right)");
                     return;
+                case SIN:
+                    fprintf(file, "\\sin\\left(");
+                    latex_node(file, node -> left);
+                    fprintf(file, "\\right)");
+                    return;
+                case COS:
+                    fprintf(file, "\\cos\\left(");
+                    latex_node(file, node -> left);
+                    fprintf(file, "\\right)");
+                    return;
+                case TG:
+                    fprintf(file, "\\tan\\left(");
+                    latex_node(file, node -> left);
+                    fprintf(file, "\\right)");
+                    return;
+                case CTG:
+                    fprintf(file, "\\cot\\left(");
+                    latex_node(file, node -> left);
+                    fprintf(file, "\\right)");
+                    return;
                 case NOT_OP:
                 default:
                     printf(MY_RED "Error in latex_node: wrong node op\n" CRESET);
@@ -102,9 +122,14 @@ int priority_op(const node_t* node)
         case POW:
             return 4;
         case LN:
+        case SIN:
+        case COS:
+        case TG:
+        case CTG:
+            return 5;
         case NOT_OP:
         default:
-            return 5;
+            return 6;
     }
 }
 

@@ -146,7 +146,15 @@ node_t* pre_new_node(char* buffer_file, node_t* parent, size_t* size, int* ind)
     while(buffer_file[*ind] != '\0' && buffer_file[*ind] != '(' && buffer_file[*ind] != ')') (*ind)++;
     if (buffer_file[*ind] == ')')
     {
+        if (node -> type == OP && node -> op >= LN && node -> op < NOT_OP)
+        {
+            (*ind)++;
+            free(buffer_data);
+            return node;
+        }
+
         printf(MY_RED "Error in pre_new_node: node has only one child\n" CRESET);
+        free(buffer_data);
         delete_subtree(node);
         return NULL;
     }
