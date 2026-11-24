@@ -4,6 +4,7 @@
 void dump_tex(const node_t* node, const char* const tex_file, int line)
 {
     assert(node);
+    assert(tex_file);
 
     FILE* file = fopen(tex_file, "w");
     if (!file) return;
@@ -18,11 +19,14 @@ void dump_tex(const node_t* node, const char* const tex_file, int line)
     fprintf(file, "\\]\n");
 
     fprintf(file, "\\end{document}\n");
+
+    fclose(file);
 }
 
 //----------------------------------------------------------------------------
 void latex_node(FILE* file, const node_t* node)
 {
+    assert(file);
     assert(node);
 
     switch (node -> type)
@@ -82,6 +86,8 @@ void latex_node(FILE* file, const node_t* node)
 //----------------------------------------------------------------------------
 int priority_op(const node_t* node)
 {
+    assert(node);
+
     if (node -> type != OP) return 100;
 
     switch (node -> op)
@@ -105,6 +111,9 @@ int priority_op(const node_t* node)
 //----------------------------------------------------------------------------
 void latex_child(FILE* file, const node_t* child, int parent_prio)
 {
+    assert(file);
+    assert(child);
+
     bool brackets = priority_op(child) < parent_prio;
     if (brackets) fprintf(file, "\\left(");
     latex_node(file, child);

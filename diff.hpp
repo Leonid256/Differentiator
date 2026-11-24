@@ -16,9 +16,11 @@ typedef double tree_elem_t;
 
 //____________________________________________________________________________
 const size_t BUFFER_SIZE = 256;
+const double EPS = 0.001;
+
 const char* const DATA_FILE  = "data.txt";
-const char* const GRAPH_FILE = "tree.dot";
-const char* const TEX_FILE   = "tex.txt";
+const char* const GRAPH_FILE = "dump/tree.dot";
+const char* const TEX_FILE   = "dump/tex.tex";
 
 const char* const OPERATIONS[] = {"+", "-", "*", "/", "^", "ln"};
 const int len_operations_arr = 4;
@@ -101,6 +103,11 @@ void latex_node(FILE* file, const node_t* node);
 int priority_op(const node_t* node);
 void latex_child(FILE* file, const node_t* child, int parent_prio);
 
+void make_num(node_t* node, double value);
+void replace_child(node_t* node, node_t* child, node_t* other);
+bool conv_const(node_t* node);
+bool is_val(node_t* node, tree_elem_t value);
+void conv_tree(tree_t* tree);
 
 //____________________________________________________________________________
 #define DUMP_TEX(node, tex_file) dump_tex(node, tex_file, __LINE__)

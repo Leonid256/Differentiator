@@ -36,11 +36,12 @@ node_t* node_diff(const node_t* node)
                     }
                     else if (node -> left -> type == NUM)
                     {
-                        if (node -> right -> type == VAR && node -> left -> var == 0)
+                        if (node -> right -> type == VAR && node -> right -> var == 0)
                             return _MUL(_MUL(_CN, _LN(_CL)), _DR);
                         else
                             return _NUM(0);
                     }
+                    break;
                 case LN:
                     return _MUL(_DIV(_NUM(1), _CN), _DL);
                 case NOT_OP:
@@ -123,3 +124,175 @@ node_t* copy_node(const node_t* node)
 
     return(copy);
 }
+
+//----------------------------------------------------------------------------
+void make_num(node_t* node, double value)
+{
+    delete_subtree(node -> left);
+    delete_subtree(node -> right);
+
+    node -> left  = NULL;
+    node -> right = NULL;
+    node -> type  = NUM;
+    node -> num   = value;
+}
+
+//----------------------------------------------------------------------------
+void replace_child(node_t* node, node_t* child, node_t* other)
+{
+    assert(node);
+    assert(child && other);
+
+    delete_subtree(other);
+
+    node -> type = child  -> type;
+    node -> num = child   -> num;
+    node -> left = child  -> left;
+    node -> right = child -> right;
+
+    if (node -> left)  node -> left  -> parent = node;
+    if (node -> right) node -> right -> parent = node;
+
+    free(child);
+}
+
+//----------------------------------------------------------------------------
+bool conv_const(node_t* node)
+{
+    if (!node) return false;
+
+    bool changed = false;
+    changed |= conv_const(node -> left);
+    changed |= conv_const(node -> right);
+
+    if (node -> type != OP) return changed;
+
+    node_t* left  = node -> left;
+    node_t* right = node -> right;
+
+    if (node -> op == LN)
+    {
+        if (left -> type == NUM && left -> num > 0)
+        {
+            make_num(node, log(left -> num));
+            return true;
+        }
+
+        return changed;
+    }
+
+    if (left -> type == NUM && right -> type == NUM)
+    {
+        switch (node -> op)
+        {
+            case ADD:
+                make_num(node, left -> num + right -> num);
+                return true;
+            case SUB:
+                make_num(node, left -> num - right -> num);
+                return true;
+            case MUL:
+                make_num(node, left -> num * right -> num);
+                return true;
+            case DIV:
+                if (!is_val(right, 0))
+                {
+                    make_num(node, left -> num / right -> num);
+                    return true;
+                }
+                break;
+            case POW:
+                make_num(node, pow(left -> num, right -> num));
+                return true;
+            case LN:
+            case NOT_OP:
+            default:
+                break;
+        }
+    }
+
+    switch (node -> op)
+    {
+        case ADD:
+            if (is_val(left, 0))
+            {
+                replace_child(node, right, left);
+                return true;
+            }
+            if (is_val(right, 0))
+            {
+                replace_child(node, left, right);
+                return true;
+            }
+            break;
+        case SUB:
+            if (is_val(right, 0))
+            {
+                replace_child(node, left, right);
+                return true;
+            }
+            break;
+        case MUL:
+            if (is_val(left, 0) || is_val(right, 0))
+            {
+                make_num(node, 0);
+                return true;
+            }
+            if (is_val(left, 1))
+            {
+                replace_child(node, right, left);
+                return true;
+            }
+            if (is_val(right, 1))
+            {
+                replace_child(node, left, right);
+                return true;
+            }
+            break;
+        case DIV:
+            if (is_val(left, 0))
+            {
+                make_num(node, 0);
+                return true;
+            }
+            if (is_val(right, 1))
+            {
+                replace_child(node, left, right);
+                return true;
+            }
+            break;
+        case POW:
+            if (is_val(right, 0))
+            {
+                make_num(node, 1);
+                return true;
+            }
+            if (is_val(right, 1))
+            {
+                replace_child(node, left, right);
+                return true;
+            }
+            break;
+        case LN:
+        case NOT_OP:
+        default:
+            break;
+    }
+
+    return changed;
+}
+
+//----------------------------------------------------------------------------
+bool is_val(node_t* node, tree_elem_t value)
+{
+    return node && node -> type == NUM && fabs(node -> num - value) < EPS;
+}
+
+//----------------------------------------------------------------------------
+void conv_tree(tree_t* tree)
+{
+    while(conv_const(tree -> root))
+        ;
+}
+
+//----------------------------------------------------------------------------
