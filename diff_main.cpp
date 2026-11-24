@@ -11,5 +11,6 @@ int main()
     tree.root = node_diff(tree.root);
 
     dump_run(&tree, &tree.root);
+    DUMP_TEX(tree.root, TEX_FILE);
 }
 

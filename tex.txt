@@ -1,0 +1,5 @@
+\documentclass{article}
+\title{Differentiator, dump in 14 line}
+\begin{document}
+\[\frac{\left({0}+{1}\right)\cdot\left({5}-{y}\right)-\left({2}+{x}\right)\cdot\left({0}-{1}\right)}{\left({5}-{y}\right)^{2}}\]
+\end{document}

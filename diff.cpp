@@ -43,8 +43,18 @@ node_t* node_diff(const node_t* node)
                     }
                 case LN:
                     return _MUL(_DIV(_NUM(1), _CN), _DL);
+                case NOT_OP:
+                default:
+                    printf(MY_RED "Error in node_diff: wrong node op\n" CRESET);
+                    break;
             }
+            break;
+        default:
+            printf(MY_RED "Error in node_diff: wrong node type\n" CRESET);
+            break;
     }
+
+    return NULL;
 }
 
 //----------------------------------------------------------------------------
@@ -64,7 +74,7 @@ node_t* new_node(type_node type, tree_elem_t data, node_t* left, node_t* right, 
             node -> num = (tree_elem_t)data;
             break;
         case VAR:
-            node -> var = data;
+            node -> var = (int)data;
             break;
         case OP:
             node -> op = (operations)data;

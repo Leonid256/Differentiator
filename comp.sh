@@ -1,4 +1,4 @@
-g++ diff_main.cpp dump_dot.cpp diff.cpp pre_read.cpp -D _DEBUG \
+g++ diff_main.cpp dump_dot.cpp diff.cpp pre_read.cpp dump_tex.cpp -D _DEBUG \
 -ggdb3 -std=c++17 -Wall -Wextra -Weffc++ \
 -Wc++14-compat -Wmissing-declarations -Wcast-align \
 -Wcast-qual -Wchar-subscripts -Wconversion \

@@ -30,6 +30,9 @@ void graph_dump_node(FILE* file, node_t* node, int depth, node_t* current)
                 (void*)node, colour, (void*)node, node -> type, node -> num, (void*)node -> parent, 
                 (void*)node -> left, (void*)node -> right);
             break;
+        default:
+            printf(MY_RED "Error in graph_dump_node: wrong node type\n" CRESET);
+            break;
     }
 
     if (node -> left)

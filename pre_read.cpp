@@ -69,7 +69,7 @@ void preorder_read(const char* const pre_file, tree_t* tree)
 }
 
 //----------------------------------------------------------------------------
-node_t* pre_new_node(char* buffer_file, node_t* parent, size_t* size, int* i)
+node_t* pre_new_node(char* buffer_file, node_t* parent, size_t* size, int* ind)
 {
     node_t* node = (node_t*) calloc(1, sizeof(node_t));
     if (node == NULL)
@@ -81,10 +81,10 @@ node_t* pre_new_node(char* buffer_file, node_t* parent, size_t* size, int* i)
     char* buffer_data = (char*)calloc(BUFFER_SIZE, 1);
 
     int buf_i = 0;
-    while(buffer_file[*i] != '\0' && buffer_file[*i] != '(' && buffer_file[*i] != ')')
+    while(buffer_file[*ind] != '\0' && buffer_file[*ind] != '(' && buffer_file[*ind] != ')')
     {
-        buffer_data[buf_i++] = buffer_file[*i];
-        (*i)++;
+        buffer_data[buf_i++] = buffer_file[*ind];
+        (*ind)++;
     }
     buffer_data[buf_i] = '\0';
 
@@ -119,18 +119,18 @@ node_t* pre_new_node(char* buffer_file, node_t* parent, size_t* size, int* i)
     node -> parent = parent;
     (*size)++;
 
-    while(buffer_file[*i] != '\0' && buffer_file[*i] != '(' && buffer_file[*i] != ')') (*i)++;
-    if (buffer_file[*i] == ')')
+    while(buffer_file[*ind] != '\0' && buffer_file[*ind] != '(' && buffer_file[*ind] != ')') (*ind)++;
+    if (buffer_file[*ind] == ')')
     {
         node -> left = NULL;
         node -> right = NULL;
-        (*i)++;
+        (*ind)++;
         return node;
     }
-    else if (buffer_file[*i] == '(')
+    else if (buffer_file[*ind] == '(')
     {
-        (*i)++;
-        node -> left = pre_new_node(buffer_file, node, size, i);
+        (*ind)++;
+        node -> left = pre_new_node(buffer_file, node, size, ind);
         if (!node -> left)
         {
             delete_subtree(node);
@@ -143,17 +143,17 @@ node_t* pre_new_node(char* buffer_file, node_t* parent, size_t* size, int* i)
         return NULL;
     }
 
-    while(buffer_file[*i] != '\0' && buffer_file[*i] != '(' && buffer_file[*i] != ')') (*i)++;
-    if (buffer_file[*i] == ')')
+    while(buffer_file[*ind] != '\0' && buffer_file[*ind] != '(' && buffer_file[*ind] != ')') (*ind)++;
+    if (buffer_file[*ind] == ')')
     {
         printf(MY_RED "Error in pre_new_node: node has only one child\n" CRESET);
         delete_subtree(node);
         return NULL;
     }
-    else if (buffer_file[*i] == '(')
+    else if (buffer_file[*ind] == '(')
     {
-        (*i)++;
-        node -> right = pre_new_node(buffer_file, node, size, i);
+        (*ind)++;
+        node -> right = pre_new_node(buffer_file, node, size, ind);
         if (!node -> right)
         {
             delete_subtree(node);
@@ -166,12 +166,12 @@ node_t* pre_new_node(char* buffer_file, node_t* parent, size_t* size, int* i)
         return NULL;
     }
 
-    if (buffer_file[*i] != ')')
+    if (buffer_file[*ind] != ')')
     {
         printf(MY_RED "Error in pre_new_node\n" CRESET);
         return NULL;
     }
     
-    (*i)++;
+    (*ind)++;
     return node;
 }
