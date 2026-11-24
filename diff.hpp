@@ -16,7 +16,7 @@ typedef double tree_elem_t;
 
 //____________________________________________________________________________
 const size_t BUFFER_SIZE = 256;
-const double EPS = 0.001;
+const double EPS = 0.0001;
 
 const char* const DATA_FILE  = "data.txt";
 const char* const GRAPH_FILE = "dump/tree.dot";
