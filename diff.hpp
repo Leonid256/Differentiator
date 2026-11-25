@@ -106,7 +106,9 @@ node_t* copy_node(const node_t* node);
 #define _CR copy_node(node -> right)
 #define _CN copy_node(node)
 
-void dump_tex(const node_t* node, const char* const tex_file, int line);
+FILE* tex_dump_begin(const char* tex_file);
+void tex_dump_end(FILE* file);
+void dump_tex(const node_t* node, FILE* file, int line);
 void latex_node(FILE* file, const node_t* node);
 int priority_op(const node_t* node);
 void latex_child(FILE* file, const node_t* child, int parent_prio);

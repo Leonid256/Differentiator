@@ -1,26 +1,46 @@
 #include "diff.hpp"
 
 //----------------------------------------------------------------------------
-void dump_tex(const node_t* node, const char* const tex_file, int line)
+FILE* tex_dump_begin(const char* tex_file)
 {
-    assert(node);
     assert(tex_file);
 
     FILE* file = fopen(tex_file, "w");
-    if (!file) return;
+    if (!file)
+    {
+        printf(MY_RED "Error in TEX-file open\n" CRESET);
+        return NULL;
+    }
 
     fprintf(file, "\\documentclass{article}\n");
-    fprintf(file, "\\title{Differentiator, dump in %d line}\n", line);
+    fprintf(file, "\\title{Differentiator Dump}\n");
     fprintf(file, "\\begin{document}\n");
-    fprintf(file, "\\maketitle\n");
+    fprintf(file, "\\maketitle\n\n");
+
+    return file;
+}
+
+//----------------------------------------------------------------------------
+void tex_dump_end(FILE* file)
+{
+    if (!file) return;
+
+    fprintf(file, "\\end{document}\n");
+    fclose(file);
+}
+
+//----------------------------------------------------------------------------
+void dump_tex(const node_t* node, FILE* file, int line)
+{
+    assert(node);
+
+    if (!file) return;
+
+    fprintf(file, "\\subsection{Differentiator, dump in %d line}\n", line);
 
     fprintf(file, "\\[");
     latex_node(file, node);
-    fprintf(file, "\\]\n");
-
-    fprintf(file, "\\end{document}\n");
-
-    fclose(file);
+    fprintf(file, "\\]\n\n");
 }
 
 //----------------------------------------------------------------------------
